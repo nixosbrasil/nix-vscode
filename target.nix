@@ -4,16 +4,8 @@ let
   inherit (import ./common.nix lib) commonMetadata;
 in
 {
-  options.target = {
-    extensionDirectory = lib.mkOption {
-      type = types.package;
-    };
-    settings = lib.mkOption {
-      type = types.package;
-    };
-    editor = lib.mkOption {
-      type = types.package;
-    };
+  options.target = lib.mkOption {
+    type = types.attrsOf types.package;
   };
   config.target.editor = pkgs.writeShellScriptBin "code" ''
     TMP=`dirname $(mktemp -u)`
@@ -34,6 +26,32 @@ in
       rm "$PROFILE_DIR" -rf
     fi
   '';
+  config.target.app = pkgs.symlinkJoin {
+    name = "vscode-${config.identifier}";
+    paths = [
+      config.target.desktop
+      config.target.editor
+    ];
+  };
+  config.target.desktop = pkgs.makeDesktopItem {
+    name = "vscode-${config.identifier}";
+    desktopName = "VSCode (${config.identifier})";
+    comment = "Code Editing. Redefined.";
+    exec = "${config.target.editor}/bin/code %F";
+    icon = "code";
+    startupNotify = true;
+    categories = "Utility;TextEditor;Development;IDE";
+    mimeType = "text/plain;inode/directory";
+    extraEntries = ''
+      Actions=new-empty-window
+      Keywords=vscode
+
+      [Desktop Action new-empty-window]
+      Name=New Empty Window
+      Exec=${config.target.editor} --new-window %F
+      Icon=code
+    '';
+  };
   config.target.settings = pkgs.writeTextFile {
     name = "settings.json";
     text = builtins.toJSON config.settings;

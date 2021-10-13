@@ -8,9 +8,10 @@ let
       ./module.nix
       ./options.nix
       ./target.nix
-      ./test.nix
     ] ++ modules;
     specialArgs = specialArgs // {inherit pkgs;};
   };
-  vscodeModules = pkgs.vscode-utils.extensionsFromVscodeMarketplace input.config.extensions;
-in {inherit input;}
+in input.config.target.app // {
+  inherit input;
+  inherit (input.config.target) editor desktop settings;
+}
