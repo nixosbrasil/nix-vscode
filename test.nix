@@ -1,5 +1,6 @@
 {pkgs, ...}:
 {
+  identifier = "teste";
   extensions = [
     {
       publisher = "vscodevim";
