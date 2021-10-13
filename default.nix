@@ -5,7 +5,6 @@
 let 
   input = pkgs.lib.evalModules {
     modules = [
-      ./module.nix
       ./options.nix
       ./target.nix
     ] ++ modules;
