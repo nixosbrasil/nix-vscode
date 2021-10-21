@@ -1,13 +1,16 @@
 { pkgs ? import <nixpkgs> {}
 , modules ? []
 , specialArgs ? {}
-}:
+, ...
+}@args:
 let 
+  mainModule = builtins.removeAttrs args ["pkgs" "specialArgs"];
   input = pkgs.lib.evalModules {
     modules = [
       ./options.nix
       ./target.nix
-    ] ++ modules;
+      (args: mainModule)
+    ];
     specialArgs = specialArgs // {inherit pkgs;};
   };
 in input.config.target.app // {
