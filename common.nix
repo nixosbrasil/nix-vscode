@@ -1,4 +1,7 @@
-lib: with lib; rec {
+lib:
+let
+  inherit (lib) mkOption types;
+in rec {
   extensionMetadata = {
       publisher = mkOption {
         type = types.str;

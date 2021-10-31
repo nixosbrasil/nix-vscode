@@ -1,10 +1,13 @@
 {pkgs, lib, config, ...}:
-with lib;
 let
   inherit (import ./common.nix lib) commonMetadata;
+  inherit (lib) mkOption types;
+  inherit (pkgs) symlinkJoin makeDesktopItem writeTextFile runCommand;
+  inherit (pkgs.vscode-utils) extensionFromVscodeMarketplace;
+  inherit (builtins) toPath concatStringsSep toJSON;
 in
 {
-  options.target = lib.mkOption {
+  options.target = mkOption {
     type = types.attrsOf types.package;
   };
   config.target.editor = pkgs.writeShellScriptBin "code" ''
@@ -26,14 +29,14 @@ in
       rm "$PROFILE_DIR" -rf
     fi
   '';
-  config.target.app = pkgs.symlinkJoin {
+  config.target.app = symlinkJoin {
     name = "vscode-${config.identifier}";
     paths = [
       config.target.desktop
       config.target.editor
     ];
   };
-  config.target.desktop = pkgs.makeDesktopItem {
+  config.target.desktop = makeDesktopItem {
     name = "vscode-${config.identifier}";
     desktopName = "VSCode (${config.identifier})";
     comment = "Code Editing. Redefined.";
@@ -52,31 +55,28 @@ in
       Icon=code
     '';
   };
-  config.target.settings = pkgs.writeTextFile {
+  config.target.settings = writeTextFile {
     name = "settings.json";
-    text = builtins.toJSON config.settings;
+    text = toJSON config.settings;
   };
-  config.target.extensionDirectory = with builtins; 
-  let 
+  config.target.extensionDirectory =
+  let
     expandByPath = e: ''
-filename="${e.publisher}.${e.name}"
-expanded="${e.path}/share/vscode/extensions/$filename"
-if [ -d "$expanded" ]; then
-  lnTo "$expanded" "$out/$filename"
-else
-  lnTo "${e.path}" "$out/$filename"
-fi
+      filename="${e.publisher}.${e.name}"
+      expanded="${e.path}/share/vscode/extensions/$filename"
+      if [ -d "$expanded" ]; then
+        lnTo "$expanded" "$out/$filename"
+      else
+        lnTo "${e.path}" "$out/$filename"
+      fi
     '';
-    expandByMarketplace = e:
-    let
-      ext = pkgs.vscode-utils.extensionFromVscodeMarketplace e;
-    in expandByPath {
+    expandByMarketplace = e: expandByPath {
       inherit (e) publisher name version;
-      path = toPath ext;
+      path = toPath (extensionFromVscodeMarketplace e);
     };
     packages = (map expandByPath config.extensionsByPath)
             ++ (map expandByMarketplace config.extensions);
-  in pkgs.runCommand "extensions" {} ''
+  in runCommand "extensions" {} ''
     mkdir -p $out
     function lnTo {
       echo "ln '$1' '$2'"
