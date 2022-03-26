@@ -43,17 +43,26 @@ in
     exec = "${config.target.editor}/bin/code %F";
     icon = "code";
     startupNotify = true;
-    categories = "Utility;TextEditor;Development;IDE";
-    mimeType = "text/plain;inode/directory";
-    extraEntries = ''
-      Actions=new-empty-window
-      Keywords=vscode
-
-      [Desktop Action new-empty-window]
-      Name=New Empty Window
-      Exec=${config.target.editor} --new-window %F
-      Icon=code
-    '';
+    categories = [
+      "Utility"
+      "TextEditor"
+      "Development"
+      "IDE"
+    ];
+    mimeTypes = [
+      "text/plain"
+      "inode/directory"
+    ];
+    keywords = [
+      "vscode"
+    ];
+    actions = {
+      new-empty-window = {
+        name = "New Empty Window";
+        exec = "${config.target.editor} --new-window %F";
+        icon = "code";
+      };
+    };
   };
   config.target.settings = writeTextFile {
     name = "settings.json";
