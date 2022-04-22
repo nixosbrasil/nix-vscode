@@ -17,10 +17,10 @@ in
     mkdir -p "$PROFILE_DIR/User"
     echo "Using profile dir '$PROFILE_DIR'"
     pushd "$PROFILE_DIR/User" > /dev/null
-      ln -s "${config.target.settings}" settings.json
+      ln -sf "${config.target.settings}" settings.json
       mkdir -p extensions
       for d in ${config.target.extensionDirectory}/*; do
-        ln -s "$d" extensions
+        ln -sf "$d" extensions
       done
     popd > /dev/null
     ${config.package}/bin/code "$@" --user-data-dir="$PROFILE_DIR" --extensions-dir="$PROFILE_DIR/User/extensions" -w
@@ -89,7 +89,7 @@ in
     mkdir -p $out
     function lnTo {
       echo "ln '$1' '$2'"
-      ln -s "$1" "$2"
+      ln -sf "$1" "$2"
     }
     ${concatStringsSep "\n" packages}
   '';
